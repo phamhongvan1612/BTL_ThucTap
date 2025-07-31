@@ -1,0 +1,120 @@
+/* Định dạng chung */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  background-color: #f4f4f4;
+  color: #333;
+}
+
+/* Container chính */
+.container {
+  width: 90%;
+  max-width: 1200px;
+  margin: 20px auto;
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #007bff;
+  color: white;
+  padding: 15px 20px;
+  border-radius: 10px;
+}
+
+.header .logo {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.history-link {
+  color: white;
+  text-decoration: none;
+  background: #ff9800;
+  padding: 8px 12px;
+  border-radius: 5px;
+  transition: 0.3s;
+}
+
+.history-link:hover {
+  background: #e68900;
+}
+
+/* Tiêu đề */
+.page-title {
+  font-size: 24px;
+  color: #007bff;
+  margin: 20px 0 10px;
+  text-align: center;
+}
+
+/* Bảng dữ liệu */
+.table-container {
+  margin-top: 20px;
+  padding: 20px;
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.table-container h2 {
+  font-size: 20px;
+  color: #007bff;
+  margin-bottom: 10px;
+}
+
+/* DataTable */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  background: #007bff;
+  color: white;
+}
+
+table th,
+table td {
+  padding: 10px;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
+}
+
+tbody tr:hover {
+  background: #f1f1f1;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+}
+
+table.dataTable th,
+table.dataTable td {
+  text-align: center !important;
+  vertical-align: middle !important;
+}
+
+table th {
+  font-weight: bold;
+}
+
+table td {
+  font-size: 14px;
+}
