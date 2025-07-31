@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bảng Điều Khiển Cảm Biến</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+    />
+    <link rel="stylesheet" href="index.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <div class="logo">Bảng Điều Khiển Cảm Biến</div>
+        <a href="history.html" class="history-link">Xem Lịch Sử Dữ Liệu</a>
+      </div>
+
+      <div class="main-content">
+        <div class="section sensor-section">
+          <h2 class="section-title">Dữ Liệu Cảm Biến</h2>
+          <div class="sensor-container">
+            <div class="sensor">
+              Nhiệt độ: <span class="sensor-value" id="temperature">--</span> °C
+            </div>
+            <div class="sensor">
+              Độ ẩm: <span class="sensor-value" id="humidity">--</span> %
+            </div>
+            <div class="sensor">
+              Cường độ sáng: <span class="sensor-value" id="lux">--</span> lux
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-container">
+          <h2>Biểu Đồ Cảm Biến</h2>
+          <canvas id="sensorChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "btl1-1451d.firebaseapp.com",
+        databaseURL:
+          "https://btl1-1451d-default-rtdb.asia-southeast1.firebasedatabase.app/",
+        projectId: "btl1-1451d",
+        storageBucket: "btl1-1451d.appspot.com",
+        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+        appId: "YOUR_APP_ID",
+      };
+
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.database();
+
+      const chart = new Chart(document.getElementById("sensorChart"), {
+        type: "line",
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: "Nhiệt Độ (°C)",
+              borderColor: "red",
+              backgroundColor: "rgba(255, 0, 0, 0.2)",
+              data: [],
+            },
+            {
+              label: "Độ Ẩm (%)",
+              borderColor: "blue",
+              backgroundColor: "rgba(0, 0, 255, 0.2)",
+              data: [],
+            },
+            {
+              label: "Cường Độ Sáng (lux)",
+              borderColor: "green",
+              backgroundColor: "rgba(0, 255, 0, 0.2)",
+              data: [],
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          scales: {
+            x: { title: { display: true, text: "Thời Gian" } },
+            y: { title: { display: true, text: "Giá Trị" }, beginAtZero: true },
+          },
+        },
+      });
+
+      let latestDHT = null;
+      let latestBH1750 = null;
+
+      function getLatestSnapshotEntry(snapshot) {
+        let latest = null;
+        snapshot.forEach((child) => {
+          const value = child.val();
+          if (!latest || (value.timestamp || 0) > (latest.timestamp || 0)) {
+            latest = value;
+          }
+        });
+        return latest;
+      }
+
+      function updateUIAndChart() {
+        if (!latestDHT || !latestBH1750) return;
+
+        const time =
+          latestDHT.timestamp ||
+          latestBH1750.timestamp ||
+          new Date().toISOString(); // dùng timestamp đã định dạng sẵn
+
+        const temp = parseFloat(latestDHT.temperature);
+        const hum = parseFloat(latestDHT.humidity);
+        const lux = parseFloat(latestBH1750.lux);
+
+        // Cập nhật UI
+        document.getElementById("temperature").innerText = isNaN(temp)
+          ? "--"
+          : temp;
+        document.getElementById("humidity").innerText = isNaN(hum) ? "--" : hum;
+        document.getElementById("lux").innerText = isNaN(lux) ? "--" : lux;
+
+        // Cập nhật biểu đồ
+        chart.data.labels.push(time); // thêm thời gian từ timestamp
+        chart.data.datasets[0].data.push(temp);
+        chart.data.datasets[1].data.push(hum);
+        chart.data.datasets[2].data.push(lux);
+
+        if (chart.data.labels.length > 20) {
+          chart.data.labels.shift();
+          chart.data.datasets.forEach((ds) => ds.data.shift());
+        }
+
+        chart.update();
+
+        // Reset sau khi update
+        latestDHT = null;
+        latestBH1750 = null;
+      }
+
+      db.ref("sensor/dht11").on("value", (snapshot) => {
+        const latest = getLatestSnapshotEntry(snapshot);
+        if (latest) {
+          latestDHT = latest;
+          updateUIAndChart();
+        }
+      });
+
+      db.ref("sensor/bh1750").on("value", (snapshot) => {
+        const latest = getLatestSnapshotEntry(snapshot);
+        if (latest) {
+          latestBH1750 = latest;
+          updateUIAndChart();
+        }
+      });
+    </script>
+  </body>
+</html>
