@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lịch Sử Dữ Liệu</title>
+    <link rel="stylesheet" href="history.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <div class="logo">Lịch Sử Dữ Liệu</div>
+        <a href="index.html" class="history-link">Trang chủ</a>
+      </div>
+
+      <div class="table-container">
+        <h2>Lịch sử cảm biến DHT11</h2>
+        <table id="dhtTable" class="display">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nhiệt độ (°C)</th>
+              <th>Độ ẩm (%)</th>
+              <th>Thời gian</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="table-container">
+        <h2>Lịch sử cảm biến BH1750</h2>
+        <table id="bh1750Table" class="display">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Ánh sáng (Lux)</th>
+              <th>Thời gian</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Firebase + jQuery + DataTable -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+    <script>
+      // Cấu hình Firebase
+      const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "btl1-1451d.firebaseapp.com",
+        databaseURL:
+          "https://btl1-1451d-default-rtdb.asia-southeast1.firebasedatabase.app/",
+        projectId: "btl1-1451d",
+        storageBucket: "btl1-1451d.appspot.com",
+        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+        appId: "YOUR_APP_ID",
+      };
+
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.database();
+
+      let dhtTable, bh1750Table;
+
+      function setupTables() {
+        dhtTable = $("#dhtTable").DataTable();
+        bh1750Table = $("#bh1750Table").DataTable();
+      }
+
+      function loadDHT11Data() {
+        db.ref("sensor/dht11").on("value", (snapshot) => {
+          const dataRows = [];
+          let id = 1;
+          snapshot.forEach((child) => {
+            const data = child.val();
+            dataRows.push([
+              id++,
+              data.temperature || "N/A",
+              data.humidity || "N/A",
+              data.timestamp || "N/A",
+            ]);
+          });
+          dhtTable.clear().rows.add(dataRows).draw();
+        });
+      }
+
+      function loadBH1750Data() {
+        db.ref("sensor/bh1750").on("value", (snapshot) => {
+          const dataRows = [];
+          let id = 1;
+          snapshot.forEach((child) => {
+            const data = child.val();
+            dataRows.push([id++, data.lux || "N/A", data.timestamp || "N/A"]);
+          });
+          bh1750Table.clear().rows.add(dataRows).draw();
+        });
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        setupTables();
+        loadDHT11Data();
+        loadBH1750Data();
+      });
+    </script>
+  </body>
+</html>
